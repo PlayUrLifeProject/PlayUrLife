@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlayUrLife - To-Do List</title>
+  
+  <!-- Lien vers la police pixelisée -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #000, #333);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    h1, h2 {
+      text-align: center;
+      animation: fadeInDown 1s ease;
+    }
+    h1 {
+      font-family: 'Press Start 2P', cursive; /* Appliquer la police pixelisée au titre */
+      font-size: 24px;
+      color: #00ff00; /* Couleur verte néon pour l'effet jeu */
+    }
+    .container {
+      width: 80%;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #222;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s ease;
+    }
+    #taskInput, #pointsInput {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #fff;
+      background-color: #333;
+      color: #fff;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #fff;
+      color: #000;
+      padding: 10px 20px;
+      margin: 10px 0;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s, transform 0.2s;
+      box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+    }
+    button:hover {
+      background-color: #444;
+      color: #fff;
+      transform: scale(1.05);
+    }
+    #tasksList li, #cheatList li {
+      background-color: #333;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      list-style-type: none;
+      display: flex;
+      justify-content: space-between;
+      transition: transform 0.2s ease, background-color 0.3s;
+    }
+    #tasksList li:hover, #cheatList li:hover {
+      transform: scale(1.05);
+      background-color: #555;
+    }
+    .deleteBtn {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    p {
+      font-size: 18px;
+    }
+    .fade-out {
+      animation: fadeOut 1s forwards;
+    }
+    .fade-in {
+      animation: fadeIn 1s forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bounceIn {
+      from {
+        transform: scale(0.9);
+        opacity: 0.5;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Page To-Do List -->
+  <div class="container fade-in" id="taskPage">
+    <h1>PlayUrLife</h1>
+    <h2>To-Do List</h2>
+    <input type="text" id="taskInput" placeholder="Ajouter une tâche..." />
+    <input type="number" id="pointsInput" placeholder="Points pour cette tâche" />
+    <button id="addTaskBtn">Ajouter une tâche</button>
+    <ul id="tasksList"></ul>
+    <p>Points : <span id="points">0</span></p>
+    <button id="goToStoreBtn">Aller au Store</button>
+  </div>
+
+  <!-- Page Store (invisible by default) -->
+  <div class="container" id="storePage" style="display: none;">
+    <h2>Cheat Time Store</h2>
+    <input type="text" id="cheatNameInput" placeholder="Nom du Cheat Time..." />
+    <input type="number" id="cheatPointsInput" placeholder="Points requis" />
+    <button id="buyBtn">Ajouter un Cheat Time</button>
+    <ul id="cheatList"></ul>
+    <p>Points : <span id="storePoints">0</span></p>
+    <button id="backToTaskPageBtn">Retour à la To-Do List</button>
+  </div>
+
+  <script>
+    // Variables globales
+    let points = parseInt(localStorage.getItem('points')) || 0;
+    const tasksList = document.getElementById('tasksList');
+    const cheatList = document.getElementById('cheatList');
+    document.getElementById('points').textContent = points;
+    document.getElementById('storePoints').textContent = points;
+
+    // Sauvegarder les données dans localStorage
+    function saveData() {
+      localStorage.setItem('points', points);
+    }
+
+    // Ajouter une tâche
+    document.getElementById('addTaskBtn').addEventListener('click', () => {
+      const taskInput = document.getElementById('taskInput');
+      const taskName = taskInput.value;
+      const taskPoints = parseInt(document.getElementById('pointsInput').value) || 0;
+      if (taskName === "" || taskPoints <= 0) return;
+
+      // Créer un nouvel élément de tâche
+      const li = document.createElement('li');
+      li.innerHTML = `${taskName} - (${taskPoints} points) <button class="deleteBtn">Supprimer</button>`;
+      li.querySelector('.deleteBtn').addEventListener('click', () => {
+        li.remove(); // Supprimer la tâche
+      });
+      li.addEventListener('click', () => {
+        // Terminer la tâche et gagner des points
+        points += taskPoints;
+        document.getElementById('points').textContent = points;
+        document.getElementById('storePoints').textContent = points;
+        saveData();
+        li.remove(); // Retirer la tâche une fois terminée
+      });
+      li.style.animation = "bounceIn 0.5s"; // Animation d'ajout de tâche
+      tasksList.appendChild(li);
+      taskInput.value = "";
+      document.getElementById('pointsInput').value = "";
+    });
+
+    // Aller au store
+    document.getElementById('goToStoreBtn').addEventListener('click', () => {
+      document.getElementById('taskPage').classList.add('fade-out');
+      setTimeout(() => {
+        document.getElementById('taskPage').style.display = 'none';
+        document.getElementById('storePage').classList.add('fade-in');
+        document.getElementById('storePage').style.display = 'block';
+      }, 1000);
+    });
+
+    // Retour à la To-Do List
+    document.getElementById('backToTaskPageBtn').addEventListener('click', () => {
+      document.getElementById('storePage').classList.add('fade-out');
+      setTimeout(() => {
+        document.getElementById('storePage').style.display = 'none';
+        document.getElementById('taskPage').classList.add('fade-in');
+        document.getElementById('taskPage').style.display = 'block';
+      }, 1000);
+    });
+
+    // Acheter un Cheat Time
+    document.getElementById('buyBtn').addEventListener('click', () => {
+      const cheatNameInput = document.getElementById('cheatNameInput');
+      const cheatName = cheatNameInput.value;
+      const cheatPoints = parseInt(document.getElementById('cheatPointsInput').value) || 0;
+            if (cheatName === "" || cheatPoints <= 0 || points < cheatPoints) return;
+
+      // Déduire les points et ajouter le Cheat Time à la liste
+      points -= cheatPoints;
+      document.getElementById('points').textContent = points;
+      document.getElementById('storePoints').textContent = points;
+
+      const li = document.createElement('li');
+      li.innerHTML = `${cheatName} - (${cheatPoints} points) <button class="deleteBtn">Supprimer</button>`;
+      li.querySelector('.deleteBtn').addEventListener('click', () => {
+        li.remove(); // Supprimer le Cheat Time
+      });
+      cheatList.appendChild(li);
+      cheatNameInput.value = "";
+      document.getElementById('cheatPointsInput').value = "";
+      saveData();
+
+      // Animation pour achat réussi
+      li.style.animation = "bounceIn 0.5s";
+    });
+  </script>
+</body>
+</html>
